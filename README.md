@@ -32,9 +32,11 @@ if cf.Exists("a.b.c") {
 # 获取配置项
 
 ```
+i:=cf.GetInt("a")
 i:=cf.GetInt("a", 0)
+s:=cf.GetString("a.b")
 s:=cf.GetString("a.b", "")
-sub:=cf.GetSubs("a.c")
+sub:=Confs(cf.Get("a.c"))
 ```
 
 # 设置配置内容
@@ -66,4 +68,5 @@ cf.Clear()
 ```
 cf.ToBytes()
 cf.ToString()
+cf.Map()
 ```
