@@ -74,12 +74,8 @@ func (o *Conf) Get(key string, defaultValue interface{}) interface{} {
 }
 
 // GetSubs 获取子数组对象
-func (o *Conf) GetSubs(key string) []interface{} {
-	v := o.getSub(o.j, key, nil)
-	if v != nil {
-		return v.([]interface{})
-	}
-	return nil
+func (o *Conf) GetSubs(key string) interface{} {
+	return o.getSub(o.j, key, nil)
 }
 
 // GetString 获取字符串值

@@ -91,12 +91,12 @@ func TestConf(t *testing.T) {
 		t.Error(cf.GetFloat64("b.e.g", 0))
 	}
 	v := cf.GetSubs("b.e.j")
-	if len(v) < 1 {
+	if v != nil && len(v.([]interface{})) < 1 {
 		t.Error("b.e.j")
 	}
-	if len(v) > 0 {
-		if v[0].(*Conf).GetString("a1", "") == "" {
-			t.Error(v[0].(*Conf).GetString("a1", ""))
+	if v != nil && len(v.([]interface{})) > 0 {
+		if v.([]interface{})[0].(*Conf).GetString("a1", "") == "" {
+			t.Error(v.([]interface{})[0].(*Conf).GetString("a1", ""))
 		}
 	}
 	if cf.GetFloat64("b.e.h+", 0) != 78.90 {
