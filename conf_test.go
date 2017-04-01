@@ -69,6 +69,15 @@ func TestConf(t *testing.T) {
 	cf.Set("b.e.d", "BED")
 	cf.Set("b.e.f", 123)
 	cf.Set("b.e.g", 45.67)
+	cf.Set("b.e.h+", 78.90)
+	cf.Set("b.e.h+3", 78.93)
+	cf.Set("b.e.h+4", 78.94)
+	cf.Set("b.e.h+6", 78.96)
+	cf.Set("b.e.h+", 78.97)
+	cf1, _ := NewConf("")
+	cf1.Set("a1", "A1")
+	cf1.Set("a2", 2)
+	cf.Set("b.e.j+", cf1.Map())
 	if cf.GetString("a", "") != "AA" {
 		t.Error(cf.GetString("a", ""))
 	}
@@ -81,9 +90,27 @@ func TestConf(t *testing.T) {
 	if cf.GetFloat64("b.e.g", 0) != 45.67 {
 		t.Error(cf.GetFloat64("b.e.g", 0))
 	}
+	v := cf.GetSubs("b.e.j")
+	if len(v) < 1 {
+		t.Error("b.e.j")
+	}
+	if len(v) > 0 {
+		if v[0].GetString("a1", "") == "" {
+			t.Error(v[0].GetString("a1", ""))
+		}
+	}
+	if cf.GetFloat64("b.e.h+", 0) != 78.90 {
+		t.Error(cf.GetFloat64("b.e.h+", 0))
+	}
+	if cf.GetFloat64("b.e.h+7", 0) != 78.97 {
+		t.Error(cf.GetFloat64("b.e.h+7", 0))
+	}
+	if cf.GetFloat64("b.e.h+8", 0) != 0 {
+		t.Error(cf.GetFloat64("b.e.h+8", 0))
+	}
 
 	// 结果判断
-	if string(cf.ToBytes()) != `{"a":"AA","b":{"c":"BC","e":{"d":"BED","f":123,"g":45.67}}}` {
+	if string(cf.ToBytes()) != `{"a":"AA","b":{"c":"BC","e":{"d":"BED","f":123,"g":45.67,"h":[78.9,null,null,78.93,78.94,null,78.96,78.97],"j":[{"a1":"A1","a2":2}]}}}` {
 		t.Error(string(cf.ToBytes()))
 	}
 }

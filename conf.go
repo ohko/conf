@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"io/ioutil"
+	"strconv"
 	"strings"
 )
 
@@ -28,6 +29,9 @@ func NewConf(confFile string) (*Conf, error) {
 
 // OpenConf 打开配置文件
 func (o *Conf) OpenConf(confFile string) error {
+	if confFile == "" {
+		return errors.New("confFile empty!")
+	}
 	// 读取配置文件
 	confContent, err := ioutil.ReadFile(confFile)
 	if err != nil {
@@ -67,6 +71,15 @@ func (o *Conf) Exists(key string) bool {
 // Get 获取
 func (o *Conf) Get(key string, defaultValue interface{}) interface{} {
 	return o.getSub(o.j, key, defaultValue)
+}
+
+// GetSubs 获取子数组对象
+func (o *Conf) GetSubs(key string) []*Conf {
+	v := o.getSub(o.j, key, nil)
+	if v != nil {
+		return v.([]*Conf)
+	}
+	return nil
 }
 
 // GetString 获取字符串值
@@ -113,10 +126,44 @@ func (o *Conf) ToString(prefix, indent string) string {
 	return string(bs)
 }
 
+// Map ...
+func (o *Conf) Map() map[string]interface{} {
+	return o.j
+}
+
 func (o *Conf) setSub(obj map[string]interface{}, key string, value interface{}) map[string]interface{} {
 	// 不包含"."
 	if !strings.Contains(key, ".") {
-		obj[key] = value
+
+		// 数组赋值
+		if strings.Contains(key, "+") {
+			_k := strings.Split(key, "+")
+			_k1 := _k[0]
+			_k2, _ := strconv.Atoi(_k[1])
+			_new := false
+			if _, ok := obj[_k1]; !ok {
+				_new = true
+				obj[_k1] = make([]interface{}, 1)
+			}
+
+			vv := obj[_k1].([]interface{})
+			if _k[1] == "" && !_new { // 无序号，追加
+				_k2 = len(vv)
+			}
+			// 填充
+			if _k2+1 > len(vv) {
+				_i := _k2 + 1 - len(vv)
+				for i := 0; i < _i; i++ {
+					vv = append(vv, nil)
+				}
+			}
+			vv[_k2] = value
+			obj[_k1] = vv
+
+		} else { // 非数组赋值
+			obj[key] = value
+		}
+
 		return obj
 	}
 
@@ -139,11 +186,47 @@ func (o *Conf) setSub(obj map[string]interface{}, key string, value interface{})
 func (o *Conf) getSub(obj interface{}, key string, defaultValue interface{}) interface{} {
 	// 不包含"."
 	if !strings.Contains(key, ".") {
-		// obj必定是map，如果有就返回值，没有返回默认值
-		if v, ok := obj.(map[string]interface{})[key]; ok {
-			return v
+		// 数组
+		if strings.Contains(key, "+") {
+			_k := strings.Split(key, "+")
+			_k1 := _k[0]
+			_k2, _ := strconv.Atoi(_k[1])
+
+			// obj必定是map，如果有就返回值，没有返回默认值
+			if v, ok := obj.(map[string]interface{})[_k1]; ok {
+				vv := v.([]interface{})
+				if _k2 < len(vv) {
+					switch v.(type) {
+					case map[string]interface{}:
+						a, _ := NewConf("")
+						a.j = vv[_k2].(map[string]interface{})
+						return a
+					default:
+						// println(1)
+						return vv[_k2]
+					}
+				}
+				return defaultValue
+			}
+		} else { // 非数组
+			// obj必定是map，如果有就返回值，没有返回默认值
+			if v, ok := obj.(map[string]interface{})[key]; ok {
+				switch v.(type) {
+				case []interface{}:
+					r := []*Conf{}
+					for _, vv := range v.([]interface{}) {
+						a, _ := NewConf("")
+						a.j = vv.(map[string]interface{})
+						r = append(r, a)
+					}
+					return r
+				default:
+					// fmt.Println(v)
+					return v
+				}
+			}
+			return defaultValue
 		}
-		return defaultValue
 	}
 
 	// 包含 ".": "a.b.c"
