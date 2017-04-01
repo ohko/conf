@@ -2,16 +2,17 @@ package conf
 
 import (
 	"encoding/json"
+	"errors"
 	"io/ioutil"
 	"strings"
 )
 
-// Conf ...
+// Conf 配置对象结构
 type Conf struct {
 	j map[string]interface{}
 }
 
-// NewConf ...
+// NewConf 创建配置对象
 func NewConf(confFile string) (*Conf, error) {
 
 	o := &Conf{}
@@ -25,7 +26,7 @@ func NewConf(confFile string) (*Conf, error) {
 	return o, nil
 }
 
-// OpenConf ...
+// OpenConf 打开配置文件
 func (o *Conf) OpenConf(confFile string) error {
 	// 读取配置文件
 	confContent, err := ioutil.ReadFile(confFile)
@@ -41,7 +42,7 @@ func (o *Conf) OpenConf(confFile string) error {
 	return nil
 }
 
-// SetConf ...
+// SetConf 设置配置内容
 func (o *Conf) SetConf(data []byte) error {
 	if err := json.Unmarshal(data, &o.j); err != nil {
 		return err
@@ -49,22 +50,31 @@ func (o *Conf) SetConf(data []byte) error {
 	return nil
 }
 
-// Clear ...
+// Clear 清空
 func (o *Conf) Clear() {
 	o.j = make(map[string]interface{})
 }
 
-// Get ...
+// Exists 判断Key是否存在
+func (o *Conf) Exists(key string) bool {
+	no := errors.New("No")
+	if no == o.getSub(o.j, key, no) {
+		return false
+	}
+	return true
+}
+
+// Get 获取
 func (o *Conf) Get(key string, defaultValue interface{}) interface{} {
 	return o.getSub(o.j, key, defaultValue)
 }
 
-// GetString ...
+// GetString 获取字符串值
 func (o *Conf) GetString(key string, defaultValue string) string {
 	return o.getSub(o.j, key, defaultValue).(string)
 }
 
-// GetInt ...
+// GetInt 获取数字值
 func (o *Conf) GetInt(key string, defaultValue int) int {
 	v := o.getSub(o.j, key, defaultValue)
 	switch v.(type) {
@@ -75,7 +85,7 @@ func (o *Conf) GetInt(key string, defaultValue int) int {
 	}
 }
 
-// GetFloat64 ...
+// GetFloat64 获取浮点数
 func (o *Conf) GetFloat64(key string, defaultValue float64) float64 {
 	v := o.getSub(o.j, key, defaultValue)
 	switch v.(type) {
@@ -86,18 +96,18 @@ func (o *Conf) GetFloat64(key string, defaultValue float64) float64 {
 	}
 }
 
-// Set ...
+// Set 设置值
 func (o *Conf) Set(key string, value interface{}) {
 	o.setSub(o.j, key, value)
 }
 
-// ToBytes ...
+// ToBytes 生成bytes
 func (o *Conf) ToBytes() []byte {
 	bs, _ := json.Marshal(o.j)
 	return bs
 }
 
-// ToString ...
+// ToString 生成字符串
 func (o *Conf) ToString(prefix, indent string) string {
 	bs, _ := json.MarshalIndent(o.j, prefix, indent)
 	return string(bs)

@@ -20,6 +20,14 @@ import "github.com/ohko/conf"
 cf, _ := NewConf("conf.json")
 ```
 
+# 判断配置项
+
+```
+if cf.Exists("a.b.c") {
+    ...
+}
+```
+
 # 获取配置项
 
 ```

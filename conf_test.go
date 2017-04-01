@@ -8,11 +8,14 @@ func TestConf(t *testing.T) {
 	if err != nil {
 		t.Log(err)
 	}
+	if cf.Exists("a.b.c") {
+		t.Error(cf.Exists("a.b.c"))
+	}
 	if cf.GetInt("a", 1) != 1 {
 		t.Error(1, cf.GetInt("a", 1))
 	}
-	if cf.GetString("a", "A") != "A" {
-		t.Error("A", cf.GetString("a", "A"))
+	if cf.GetString("b.c", "BC") != "BC" {
+		t.Error(cf.GetString("b.c", "BC"))
 	}
 
 	// 测试有无内容
