@@ -74,10 +74,10 @@ func (o *Conf) Get(key string, defaultValue interface{}) interface{} {
 }
 
 // GetSubs 获取子数组对象
-func (o *Conf) GetSubs(key string) []*Conf {
+func (o *Conf) GetSubs(key string) []interface{} {
 	v := o.getSub(o.j, key, nil)
 	if v != nil {
-		return v.([]*Conf)
+		return v.([]interface{})
 	}
 	return nil
 }
@@ -213,15 +213,19 @@ func (o *Conf) getSub(obj interface{}, key string, defaultValue interface{}) int
 			if v, ok := obj.(map[string]interface{})[key]; ok {
 				switch v.(type) {
 				case []interface{}:
-					r := []*Conf{}
+					r := []interface{}{}
 					for _, vv := range v.([]interface{}) {
-						a, _ := NewConf("")
-						a.j = vv.(map[string]interface{})
-						r = append(r, a)
+						switch vv.(type) {
+						case map[string]interface{}:
+							a, _ := NewConf("")
+							a.j = vv.(map[string]interface{})
+							r = append(r, a)
+						default:
+							r = append(r, vv)
+						}
 					}
 					return r
 				default:
-					// fmt.Println(v)
 					return v
 				}
 			}

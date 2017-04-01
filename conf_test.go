@@ -95,8 +95,8 @@ func TestConf(t *testing.T) {
 		t.Error("b.e.j")
 	}
 	if len(v) > 0 {
-		if v[0].GetString("a1", "") == "" {
-			t.Error(v[0].GetString("a1", ""))
+		if v[0].(*Conf).GetString("a1", "") == "" {
+			t.Error(v[0].(*Conf).GetString("a1", ""))
 		}
 	}
 	if cf.GetFloat64("b.e.h+", 0) != 78.90 {
