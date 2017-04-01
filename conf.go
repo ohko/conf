@@ -30,7 +30,7 @@ func NewConf(confFile string) (*Conf, error) {
 // OpenConf 打开配置文件
 func (o *Conf) OpenConf(confFile string) error {
 	if confFile == "" {
-		return errors.New("confFile empty!")
+		return errors.New("confFile empty")
 	}
 	// 读取配置文件
 	confContent, err := ioutil.ReadFile(confFile)
@@ -61,31 +61,36 @@ func (o *Conf) Clear() {
 
 // Exists 判断Key是否存在
 func (o *Conf) Exists(key string) bool {
-	no := errors.New("No")
-	if no == o.getSub(o.j, key, no) {
+	if false == o.getSub(o.j, key, false) {
 		return false
 	}
 	return true
 }
 
 // Get 获取
-func (o *Conf) Get(key string, defaultValue interface{}) interface{} {
-	return o.getSub(o.j, key, defaultValue)
-}
-
-// GetSubs 获取子数组对象
-func (o *Conf) GetSubs(key string) interface{} {
+func (o *Conf) Get(key string, defaultValue ...interface{}) interface{} {
+	if len(defaultValue) > 0 {
+		return o.getSub(o.j, key, defaultValue[0])
+	}
 	return o.getSub(o.j, key, nil)
 }
 
 // GetString 获取字符串值
-func (o *Conf) GetString(key string, defaultValue string) string {
-	return o.getSub(o.j, key, defaultValue).(string)
+func (o *Conf) GetString(key string, defaultValue ...string) string {
+	if len(defaultValue) > 0 {
+		return o.getSub(o.j, key, defaultValue[0]).(string)
+	}
+	return o.getSub(o.j, key, "").(string)
 }
 
 // GetInt 获取数字值
-func (o *Conf) GetInt(key string, defaultValue int) int {
-	v := o.getSub(o.j, key, defaultValue)
+func (o *Conf) GetInt(key string, defaultValue ...int) int {
+	var v interface{}
+	if len(defaultValue) > 0 {
+		v = o.getSub(o.j, key, defaultValue[0])
+	} else {
+		v = o.getSub(o.j, key, 0)
+	}
 	switch v.(type) {
 	case float64:
 		return int(v.(float64))
@@ -95,14 +100,27 @@ func (o *Conf) GetInt(key string, defaultValue int) int {
 }
 
 // GetFloat64 获取浮点数
-func (o *Conf) GetFloat64(key string, defaultValue float64) float64 {
-	v := o.getSub(o.j, key, defaultValue)
+func (o *Conf) GetFloat64(key string, defaultValue ...float64) float64 {
+	var v interface{}
+	if len(defaultValue) > 0 {
+		v = o.getSub(o.j, key, defaultValue[0])
+	} else {
+		v = o.getSub(o.j, key, 0)
+	}
 	switch v.(type) {
 	case float64:
 		return v.(float64)
 	default:
 		return float64(v.(int))
 	}
+}
+
+// GetBool 获取是否
+func (o *Conf) GetBool(key string, defaultValue ...bool) bool {
+	if len(defaultValue) > 0 {
+		return o.getSub(o.j, key, defaultValue[0]).(bool)
+	}
+	return o.getSub(o.j, key, false).(bool)
 }
 
 // Set 设置值
@@ -125,6 +143,106 @@ func (o *Conf) ToString(prefix, indent string) string {
 // Map ...
 func (o *Conf) Map() map[string]interface{} {
 	return o.j
+}
+
+// Confs ...
+func Confs(i interface{}, defaultValue ...[]*Conf) []*Conf {
+	if i == nil {
+		if len(defaultValue) > 0 {
+			return defaultValue[0]
+		}
+		return []*Conf{}
+	}
+	switch i.(type) {
+	case []interface{}:
+		r := []*Conf{}
+		for _, v := range i.([]interface{}) {
+			r = append(r, v.(*Conf))
+		}
+		return r
+	default:
+		return make([]*Conf, 0)
+	}
+}
+
+// Strings ...
+func Strings(i interface{}, defaultValue ...[]string) []string {
+	if i == nil {
+		if len(defaultValue) > 0 {
+			return defaultValue[0]
+		}
+		return []string{}
+	}
+	switch i.(type) {
+	case []interface{}:
+		var r []string
+		for _, v := range i.([]interface{}) {
+			r = append(r, v.(string))
+		}
+		return r
+	default:
+		return make([]string, 0)
+	}
+}
+
+// Ints ...
+func Ints(i interface{}, defaultValue ...[]int) []int {
+	if i == nil {
+		if len(defaultValue) > 0 {
+			return defaultValue[0]
+		}
+		return []int{}
+	}
+	switch i.(type) {
+	case []interface{}:
+		var r []int
+		for _, v := range i.([]interface{}) {
+			r = append(r, int(v.(float64)))
+		}
+		return r
+	default:
+		return make([]int, 0)
+	}
+}
+
+// Float64s ...
+func Float64s(i interface{}, defaultValue ...[]float64) []float64 {
+	if i == nil {
+		if len(defaultValue) > 0 {
+			return defaultValue[0]
+		}
+		return []float64{}
+	}
+	switch i.(type) {
+	case []interface{}:
+		var r []float64
+		for _, v := range i.([]interface{}) {
+			r = append(r, v.(float64))
+		}
+		return r
+	default:
+		return make([]float64, 0)
+	}
+}
+
+// Bools ...
+func Bools(i interface{}, defaultValue ...[]bool) []bool {
+	if i == nil {
+		if len(defaultValue) > 0 {
+			return defaultValue[0]
+		}
+		return []bool{}
+	}
+	switch i.(type) {
+	case []interface{}:
+		var r []bool
+		for _, v := range i.([]interface{}) {
+			r = append(r, v.(bool))
+		}
+		return r
+	default:
+		return make([]bool, 0)
+	}
 }
 
 func (o *Conf) setSub(obj map[string]interface{}, key string, value interface{}) map[string]interface{} {
@@ -198,7 +316,6 @@ func (o *Conf) getSub(obj interface{}, key string, defaultValue interface{}) int
 						a.j = vv[_k2].(map[string]interface{})
 						return a
 					default:
-						// println(1)
 						return vv[_k2]
 					}
 				}

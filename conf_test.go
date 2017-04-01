@@ -21,40 +21,60 @@ func TestConf(t *testing.T) {
 	// 测试有无内容
 	cf.SetConf([]byte(`
 {
-    "a__comment": "A",
     "a": "A",
-    "b__comment": 2,
     "b": 2,
-    "c__comment": "C",
     "c": {
-        "d__comment": 4.5,
         "d": 4.5,
         "e": {
-            "f__comment": 6.789,
             "f": 6.789,
-			"g":"G"
+			"g":"G",
+			"h":true,
+			"i":[1,2,3],
+			"j":["a","b"],
+			"k":[
+				{
+					"l":1,
+					"m":2
+				}
+			]
         }
     }
 }`))
 	// a=A
-	if cf.GetString("a", "A") != "A" {
-		t.Error("A", cf.GetString("a", "A"))
+	if cf.GetString("a") != "A" {
+		t.Error(cf.GetString("a"))
 	}
 	// b=2
-	if cf.GetInt("b", 2) != 2 {
-		t.Error(2, cf.GetInt("b", 2))
+	if cf.GetInt("b") != 2 {
+		t.Error(cf.GetInt("b"))
 	}
 	// c.d=4.5
-	if cf.GetFloat64("c.d", 1.0) != 4.5 || cf.GetFloat64("c.d", 1.0) == 1.0 {
-		t.Error(cf.GetFloat64("c.d", 1.0))
+	if cf.GetFloat64("c.d") != 4.5 {
+		t.Error(cf.GetFloat64("c.d"))
 	}
 	// c.e.f=6.789
-	if cf.GetFloat64("c.e.f", 1.0) != 6.789 || cf.GetFloat64("c.e.f", 1.0) == 1.0 {
-		t.Error(cf.GetFloat64("c.e.f", 1.0))
+	if cf.GetFloat64("c.e.f") != 6.789 {
+		t.Error(cf.GetFloat64("c.e.f"))
 	}
 	// c.e.g=G
-	if cf.GetString("c.e.g", "A") != "G" || cf.GetString("c.e.g", "A") == "A" {
-		t.Error(cf.GetString("c.e.g", "A"))
+	if cf.GetString("c.e.g") != "G" {
+		t.Error(cf.GetString("c.e.g"))
+	}
+	// c.e.h=true
+	if !cf.GetBool("c.e.h") {
+		t.Error(cf.GetBool("c.e.h"))
+	}
+	// c.e.i=[1,2,3]
+	if Ints(cf.Get("c.e.i"))[2] != 3 {
+		t.Error(cf.Get("c.e.i"))
+	}
+	// c.e.j=["a","b"]
+	if Strings(cf.Get("c.e.j"))[1] != "b" {
+		t.Error(cf.Get("c.e.j"))
+	}
+	// c.e.k.m=true
+	if Confs(cf.Get("c.e.k"))[0].GetInt("m") != 2 {
+		t.Error(cf.Get("c.e.k"))
 	}
 
 	// 测试清空
@@ -90,14 +110,9 @@ func TestConf(t *testing.T) {
 	if cf.GetFloat64("b.e.g", 0) != 45.67 {
 		t.Error(cf.GetFloat64("b.e.g", 0))
 	}
-	v := cf.GetSubs("b.e.j")
-	if v != nil && len(v.([]interface{})) < 1 {
-		t.Error("b.e.j")
-	}
-	if v != nil && len(v.([]interface{})) > 0 {
-		if v.([]interface{})[0].(*Conf).GetString("a1", "") == "" {
-			t.Error(v.([]interface{})[0].(*Conf).GetString("a1", ""))
-		}
+	v := cf.Get("b.e.j")
+	if Confs(v)[0].GetString("a1", "") == "" {
+		t.Error(Confs(v)[0].GetString("a1", ""))
 	}
 	if cf.GetFloat64("b.e.h+", 0) != 78.90 {
 		t.Error(cf.GetFloat64("b.e.h+", 0))
