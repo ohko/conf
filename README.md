@@ -2,6 +2,7 @@
 
 - 支持JSON格式
 - 支持子节点获取
+- 支持子节点数组对象
 - 支持重置配置文件
 - 支持清空配置
 - 支持设置配置项
@@ -33,6 +34,7 @@ if cf.Exists("a.b.c") {
 ```
 i:=cf.GetInt("a", 0)
 s:=cf.GetString("a.b", "")
+sub:=cf.GetSubs("a.c")
 ```
 
 # 设置配置内容
@@ -49,6 +51,8 @@ cf.Set("b.c", "BC")
 cf.Set("b.e.d", "BED")
 cf.Set("b.e.f", 123)
 cf.Set("b.e.g", 45.67)
+cf.Set("b.e.h+", 1.21)
+cf.Set("b.e.h+3", 1.23)
 ```
 
 # 清空配置
