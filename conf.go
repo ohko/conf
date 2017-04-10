@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"io/ioutil"
+	"regexp"
 	"strconv"
 	"strings"
 )
@@ -48,7 +49,15 @@ func (o *Conf) OpenConf(confFile string) error {
 
 // SetConf 设置配置内容
 func (o *Conf) SetConf(data []byte) error {
-	if err := json.Unmarshal(data, &o.j); err != nil {
+	// 替换每行以 / 开头的内容为空
+	// 去掉json中的注释
+	reg, err := regexp.Compile("[ *|\\t*]// .*")
+	if err != nil {
+		return err
+	}
+	d := reg.ReplaceAll(data, nil)
+
+	if err := json.Unmarshal(d, &o.j); err != nil {
 		return err
 	}
 	return nil
