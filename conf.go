@@ -174,6 +174,26 @@ func Confs(i interface{}, defaultValue ...[]*Conf) []*Conf {
 	}
 }
 
+// Interfaces ...
+func Interfaces(i interface{}, defaultValue ...[]interface{}) []interface{} {
+	if i == nil {
+		if len(defaultValue) > 0 {
+			return defaultValue[0]
+		}
+		return []interface{}{}
+	}
+	switch i.(type) {
+	case []interface{}:
+		var r []interface{}
+		for _, v := range i.([]interface{}) {
+			r = append(r, v)
+		}
+		return r
+	default:
+		return make([]interface{}, 0)
+	}
+}
+
 // Strings ...
 func Strings(i interface{}, defaultValue ...[]string) []string {
 	if i == nil {
