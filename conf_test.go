@@ -97,6 +97,14 @@ func TestConf(t *testing.T) {
 	cf.Set("b.e.h+4", 78.94)
 	cf.Set("b.e.h+6", 78.96)
 	cf.Set("b.e.h+", 78.97)
+
+	cfCC1, _ := NewConf("")
+	cfCC1.Set("a", 1)
+
+	cfBB1, _ := NewConf("")
+	cfBB1.Set("cc+", cfCC1.Map())
+
+	cf.Set("bb+", cfBB1.Map())
 	cf1, _ := NewConf("")
 	cf1.Set("a1", "A1")
 	cf1.Set("a2", 2)
@@ -128,7 +136,7 @@ func TestConf(t *testing.T) {
 	}
 
 	// 结果判断
-	if string(cf.ToBytes()) != `{"a":"AA","b":{"c":"BC","e":{"d":"BED","f":123,"g":45.67,"h":[78.9,null,null,78.93,78.94,null,78.96,78.97],"j":[{"a1":"A1","a2":2}]}}}` {
+	if string(cf.ToBytes()) != `{"a":"AA","b":{"c":"BC","e":{"d":"BED","f":123,"g":45.67,"h":[78.9,null,null,78.93,78.94,null,78.96,78.97],"j":[{"a1":"A1","a2":2}]}},"bb":[{"cc":[{"a":1}]}]}` {
 		t.Error(string(cf.ToBytes()))
 	}
 }

@@ -7,6 +7,8 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+
+	jsoniter "github.com/json-iterator/go"
 )
 
 // Conf 配置对象结构
@@ -57,7 +59,7 @@ func (o *Conf) SetConf(data []byte) error {
 	}
 	d := reg.ReplaceAll(data, nil)
 
-	if err := json.Unmarshal(d, &o.j); err != nil {
+	if err := jsoniter.Unmarshal(d, &o.j); err != nil {
 		return err
 	}
 	return nil
@@ -139,7 +141,7 @@ func (o *Conf) Set(key string, value interface{}) {
 
 // ToBytes 生成bytes
 func (o *Conf) ToBytes() []byte {
-	bs, _ := json.Marshal(o.j)
+	bs, _ := jsoniter.Marshal(o.j)
 	return bs
 }
 
