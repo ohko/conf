@@ -42,7 +42,7 @@ func (o *Conf) OpenConf(confFile string) error {
 	}
 
 	// 解析配置
-	if err := o.SetConf(confContent); err != nil {
+	if err := o.SetConf(confContent, true); err != nil {
 		return err
 	}
 
@@ -50,16 +50,18 @@ func (o *Conf) OpenConf(confFile string) error {
 }
 
 // SetConf 设置配置内容
-func (o *Conf) SetConf(data []byte) error {
+func (o *Conf) SetConf(data []byte, removeNote bool) error {
 	// 替换每行以 / 开头的内容为空
 	// 去掉json中的注释
-	reg, err := regexp.Compile("[ *|\\t*]// .*")
-	if err != nil {
-		return err
+	if removeNote {
+		reg, err := regexp.Compile("[ *|\\t*]// .*")
+		if err != nil {
+			return err
+		}
+		data = reg.ReplaceAll(data, nil)
 	}
-	d := reg.ReplaceAll(data, nil)
 
-	if err := jsoniter.Unmarshal(d, &o.j); err != nil {
+	if err := jsoniter.Unmarshal(data, &o.j); err != nil {
 		return err
 	}
 	return nil
